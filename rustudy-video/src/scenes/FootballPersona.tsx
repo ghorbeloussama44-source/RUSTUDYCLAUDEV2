@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, Easing } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { Limb } from "../rig/Limb";
+import { CuteCharacter } from "../rig/CuteCharacter";
 
 const LOOP = 150;
 
@@ -118,8 +118,8 @@ export const FootballPersona: React.FC = () => {
   );
 
   // ball: rests at right foot, launches on contact (~frame 48), exits top-right
-  const footX = hipX + 70;
-  const footY = hipY + 150;
+  const footX = hipX + 60;
+  const footY = hipY + 100;
 
   const ballX = interpolate(
     frame,
@@ -216,74 +216,15 @@ export const FootballPersona: React.FC = () => {
 
       <Ball x={ballX} y={ballY} size={64} rotate={ballRotate} opacity={ballOpacity} />
 
-      {/* character */}
-      <div style={{ position: "absolute", left: hipX, top: bodyY }}>
-        {/* legs (behind torso) */}
-        <Limb
-          left={-46}
-          top={0}
-          width={42}
-          length={170}
-          angle={leftLegAngle}
-          color={colors.black}
-        />
-        <Limb
-          left={4}
-          top={0}
-          width={42}
-          length={170}
-          angle={rightLegAngle}
-          color={colors.black}
-        />
-
-        {/* torso */}
-        <div
-          style={{
-            position: "absolute",
-            left: -64,
-            top: -176,
-            width: 128,
-            height: 178,
-            background: colors.purple,
-            borderRadius: 32,
-            rotate: `${torsoLean}deg`,
-            transformOrigin: "50% 100%",
-          }}
-        />
-
-        {/* arms */}
-        <Limb
-          left={-96}
-          top={-172}
-          width={34}
-          length={130}
-          angle={leftArmAngle}
-          color={colors.purple}
-        />
-        <Limb
-          left={62}
-          top={-172}
-          width={34}
-          length={130}
-          angle={rightArmAngle}
-          color={colors.purple}
-        />
-
-        {/* head */}
-        <div
-          style={{
-            position: "absolute",
-            left: -52,
-            top: -276,
-            width: 104,
-            height: 104,
-            borderRadius: "50%",
-            background: colors.cream,
-            rotate: `${torsoLean * 0.5}deg`,
-            transformOrigin: "50% 130%",
-          }}
-        />
-      </div>
+      <CuteCharacter
+        hipX={hipX}
+        bodyY={bodyY}
+        torsoLean={torsoLean}
+        leftArmAngle={leftArmAngle}
+        rightArmAngle={rightArmAngle}
+        leftLegAngle={leftLegAngle}
+        rightLegAngle={rightLegAngle}
+      />
     </AbsoluteFill>
   );
 };

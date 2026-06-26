@@ -8,7 +8,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { Limb } from "../rig/Limb";
+import { CuteCharacter } from "../rig/CuteCharacter";
 import { Logo } from "../Logo";
 
 const ease = Easing.bezier(0.45, 0, 0.55, 1);
@@ -61,8 +61,8 @@ export const LogoPersona: React.FC = () => {
     durationInFrames: 32,
   });
 
-  const groundY = hipY + 190;
-  const overheadY = hipY - 300;
+  const groundY = hipY + 130;
+  const overheadY = hipY - 440;
 
   const plaqueY = interpolate(liftSpring, [0, 1], [groundY, overheadY]);
   const plaqueScale = interpolate(liftSpring, [0, 1], [0.82, 1.22]);
@@ -109,7 +109,7 @@ export const LogoPersona: React.FC = () => {
         style={{
           position: "absolute",
           left: hipX,
-          top: hipY + 200,
+          top: hipY + 130,
           width: 260,
           height: 36,
           borderRadius: "50%",
@@ -141,69 +141,15 @@ export const LogoPersona: React.FC = () => {
         <Logo size={56} light={false} />
       </div>
 
-      <div style={{ position: "absolute", left: hipX, top: bodyY }}>
-        <Limb
-          left={-44}
-          top={0}
-          width={40}
-          length={160}
-          angle={legSway}
-          color={colors.black}
-        />
-        <Limb
-          left={4}
-          top={0}
-          width={40}
-          length={160}
-          angle={legSway}
-          color={colors.black}
-        />
-
-        <div
-          style={{
-            position: "absolute",
-            left: -62,
-            top: -170,
-            width: 124,
-            height: 174,
-            background: colors.purple,
-            borderRadius: 32,
-            rotate: `${torsoLean}deg`,
-            transformOrigin: "50% 100%",
-          }}
-        />
-
-        <Limb
-          left={-94}
-          top={-166}
-          width={32}
-          length={126}
-          angle={leftArmAngle}
-          color={colors.purple}
-        />
-        <Limb
-          left={62}
-          top={-166}
-          width={32}
-          length={126}
-          angle={rightArmAngle}
-          color={colors.purple}
-        />
-
-        <div
-          style={{
-            position: "absolute",
-            left: -50,
-            top: -268,
-            width: 100,
-            height: 100,
-            borderRadius: "50%",
-            background: colors.cream,
-            rotate: `${torsoLean * 0.5}deg`,
-            transformOrigin: "50% 130%",
-          }}
-        />
-      </div>
+      <CuteCharacter
+        hipX={hipX}
+        bodyY={bodyY}
+        torsoLean={torsoLean}
+        leftArmAngle={leftArmAngle}
+        rightArmAngle={rightArmAngle}
+        leftLegAngle={legSway}
+        rightLegAngle={legSway}
+      />
     </AbsoluteFill>
   );
 };
