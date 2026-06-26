@@ -1,8 +1,9 @@
 import React from "react";
-import { AbsoluteFill, interpolate, useCurrentFrame, Easing } from "remotion";
+import { AbsoluteFill, Audio, Sequence, interpolate, useCurrentFrame, Easing } from "remotion";
+import { whip, whoosh } from "@remotion/sfx";
 import { colors, fontFamily } from "../theme";
 import { FoxKarateCharacter } from "../rig/FoxKarateCharacter";
-import { DustPuff, ImpactBurst, SpeedLines, useShake } from "../rig/Effects";
+import { DustPuff, ImpactBurst, SpeedLines, Vignette, useShake } from "../rig/Effects";
 
 const LOOP = 150;
 const CONTACT_FRAME = 48;
@@ -294,6 +295,13 @@ export const FootballPersona: React.FC = () => {
         <ImpactBurst x={footX + 24} y={footY - 4} frame={frame} triggerFrame={CONTACT_FRAME} />
         <DustPuff x={hipX - 30} y={hipY + 100} frame={frame} triggerFrame={LANDING_FRAME} duration={12} />
 
+        <Sequence from={34} layout="none">
+          <Audio src={whoosh} volume={0.5} />
+        </Sequence>
+        <Sequence from={CONTACT_FRAME - 1} layout="none">
+          <Audio src={whip} volume={0.85} />
+        </Sequence>
+
         <FoxKarateCharacter
           hipX={hipX}
           bodyY={bodyY}
@@ -311,6 +319,7 @@ export const FootballPersona: React.FC = () => {
           tailAngle={150 - torsoLeanLag * 1.2}
         />
       </div>
+      <Vignette strength={0.45} />
     </AbsoluteFill>
   );
 };

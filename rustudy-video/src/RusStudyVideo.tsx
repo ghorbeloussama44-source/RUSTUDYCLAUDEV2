@@ -1,6 +1,7 @@
 import React from "react";
-import { TransitionSeries, linearTiming } from "@remotion/transitions";
+import { TransitionSeries, linearTiming, springTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
+import { slide } from "@remotion/transitions/slide";
 import { Hero } from "./scenes/Hero";
 import { Stats } from "./scenes/Stats";
 import { WhyRussia } from "./scenes/WhyRussia";
@@ -31,7 +32,7 @@ export const RusStudyVideo: React.FC = () => {
         <Hero />
       </TransitionSeries.Sequence>
       <TransitionSeries.Transition
-        presentation={fade()}
+        presentation={slide({ direction: "from-right" })}
         timing={linearTiming({ durationInFrames: TRANSITION })}
       />
       <TransitionSeries.Sequence durationInFrames={SCENE_DURATIONS.stats}>
@@ -45,7 +46,7 @@ export const RusStudyVideo: React.FC = () => {
         <WhyRussia />
       </TransitionSeries.Sequence>
       <TransitionSeries.Transition
-        presentation={fade()}
+        presentation={slide({ direction: "from-left" })}
         timing={linearTiming({ durationInFrames: TRANSITION })}
       />
       <TransitionSeries.Sequence durationInFrames={SCENE_DURATIONS.programs}>
@@ -59,8 +60,11 @@ export const RusStudyVideo: React.FC = () => {
         <Support />
       </TransitionSeries.Sequence>
       <TransitionSeries.Transition
-        presentation={fade()}
-        timing={linearTiming({ durationInFrames: TRANSITION })}
+        presentation={slide({ direction: "from-bottom" })}
+        timing={springTiming({
+          config: { damping: 200 },
+          durationInFrames: TRANSITION,
+        })}
       />
       <TransitionSeries.Sequence durationInFrames={SCENE_DURATIONS.testimonial}>
         <Testimonial />

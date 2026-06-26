@@ -1,16 +1,19 @@
 import React from "react";
 import {
   AbsoluteFill,
+  Audio,
   Easing,
+  Sequence,
   interpolate,
   spring,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
+import { ding, whoosh } from "@remotion/sfx";
 import { colors, fontFamily } from "../theme";
 import { FoxKarateCharacter } from "../rig/FoxKarateCharacter";
 import { Logo } from "../Logo";
-import { GlowPulse, useShake } from "../rig/Effects";
+import { GlowPulse, Vignette, useShake } from "../rig/Effects";
 
 const ease = Easing.bezier(0.45, 0, 0.55, 1);
 const SETTLE_FRAME = 80;
@@ -191,6 +194,13 @@ export const LogoPersona: React.FC = () => {
           <Logo size={56} light={false} />
         </div>
 
+        <Sequence from={45} layout="none">
+          <Audio src={whoosh} volume={0.45} />
+        </Sequence>
+        <Sequence from={SETTLE_FRAME} layout="none">
+          <Audio src={ding} volume={0.6} />
+        </Sequence>
+
         <FoxKarateCharacter
           hipX={hipX}
           bodyY={bodyY}
@@ -206,6 +216,7 @@ export const LogoPersona: React.FC = () => {
           tailAngle={150 - torsoLeanLag * 1.2}
         />
       </div>
+      <Vignette strength={0.35} />
     </AbsoluteFill>
   );
 };

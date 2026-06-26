@@ -126,6 +126,19 @@ export const GlowPulse: React.FC<{
   );
 };
 
+export const Vignette: React.FC<{ strength?: number }> = ({
+  strength = 0.55,
+}) => (
+  <div
+    style={{
+      position: "absolute",
+      inset: 0,
+      pointerEvents: "none",
+      background: `radial-gradient(circle at 50% 45%, transparent 45%, rgba(0,0,0,${strength}) 100%)`,
+    }}
+  />
+);
+
 export const SpeedLines: React.FC<{
   x: number;
   y: number;
