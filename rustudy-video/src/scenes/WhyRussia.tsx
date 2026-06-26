@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { fadeUp } from "../motion";
+import { slideIn } from "../motion";
 
 const cards = [
   {
@@ -46,7 +46,7 @@ export const WhyRussia: React.FC = () => {
               color: c.fg,
               borderRadius: 28,
               padding: "44px 56px",
-              ...fadeUp(frame, i * 14, 20, 44),
+              ...slideIn(frame, i * 14, 22, 90, i % 2 === 0 ? "left" : "right"),
             }}
           >
             <div

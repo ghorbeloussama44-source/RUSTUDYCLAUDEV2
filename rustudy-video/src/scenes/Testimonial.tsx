@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { fadeUp } from "../motion";
+import { fadeUp, popIn } from "../motion";
 
 export const Testimonial: React.FC = () => {
   const frame = useCurrentFrame();
@@ -17,7 +17,19 @@ export const Testimonial: React.FC = () => {
       }}
     >
       <div style={{ ...fadeUp(frame, 0, 18, 30), textAlign: "center", maxWidth: 1300 }}>
-        <div style={{ fontSize: 44, marginBottom: 24, letterSpacing: 6 }}>★★★★★</div>
+        <div style={{ fontSize: 44, marginBottom: 24, letterSpacing: 6 }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span
+              key={i}
+              style={{
+                display: "inline-block",
+                scale: popIn(frame, i * 4, 14).scale,
+              }}
+            >
+              ★
+            </span>
+          ))}
+        </div>
         <p
           style={{
             fontSize: 46,

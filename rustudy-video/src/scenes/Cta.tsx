@@ -1,11 +1,17 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { fadeUp } from "../motion";
+import { fadeUp, popIn } from "../motion";
 import { Logo } from "../Logo";
 
 export const Cta: React.FC = () => {
   const frame = useCurrentFrame();
+
+  const entryScale = popIn(frame, 0, 20).scale;
+  const pulse = Math.sin(frame / 10) * 0.5 + 0.5;
+  const badgeScale = frame < 20 ? entryScale : 1 + pulse * 0.04;
+  const glowSpread = 6 + pulse * 12;
+  const glowAlpha = 0.25 + pulse * 0.3;
 
   return (
     <AbsoluteFill
@@ -29,6 +35,8 @@ export const Cta: React.FC = () => {
             letterSpacing: "0.04em",
             textTransform: "uppercase",
             marginBottom: 24,
+            scale: badgeScale,
+            boxShadow: `0 0 ${glowSpread}px rgba(168,85,247,${glowAlpha})`,
           }}
         >
           Postuler

@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { fadeUp } from "../motion";
+import { fadeUp, popIn } from "../motion";
 
 const programs = [
   { title: "Médecine Générale", meta: "6 ans · 3 500 €/an", bg: colors.blue, fg: colors.white },
@@ -55,6 +55,7 @@ export const Programs: React.FC = () => {
               borderRadius: 26,
               padding: "40px 44px",
               ...fadeUp(frame, 14 + i * 8, 18, 34),
+              scale: popIn(frame, 14 + i * 8, 20).scale,
             }}
           >
             <div

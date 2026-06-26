@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { fadeUp } from "../motion";
+import { fadeUp, floatY, popIn } from "../motion";
 import { CountUp } from "../CountUp";
 
 const stats: { value: number; suffix: string; label: string; color: string }[] = [
@@ -38,7 +38,9 @@ export const Stats: React.FC = () => {
       </div>
 
       <div style={{ display: "flex", gap: 36 }}>
-        {stats.map((s, i) => (
+        {stats.map((s, i) => {
+          const start = 16 + i * 10;
+          return (
           <div
             key={s.label}
             style={{
@@ -47,34 +49,37 @@ export const Stats: React.FC = () => {
               padding: "48px 56px",
               textAlign: "center",
               width: 360,
-              ...fadeUp(frame, 16 + i * 10, 20, 36),
+              ...fadeUp(frame, start, 20, 36),
+              scale: popIn(frame, start, 22).scale,
             }}
           >
-            <div
-              style={{
-                fontSize: 76,
-                fontWeight: 700,
-                letterSpacing: "-0.04em",
-                color: s.color,
-              }}
-            >
-              <CountUp to={s.value} suffix={s.suffix} startFrame={16 + i * 10} durationInFrames={45} />
-            </div>
-            <div
-              style={{
-                fontSize: 24,
-                opacity: 0.55,
-                color: colors.white,
-                marginTop: 10,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                fontWeight: 500,
-              }}
-            >
-              {s.label}
+            <div style={{ translate: `0px ${floatY(frame - start, 5, 26)}px` }}>
+              <div
+                style={{
+                  fontSize: 76,
+                  fontWeight: 700,
+                  letterSpacing: "-0.04em",
+                  color: s.color,
+                }}
+              >
+                <CountUp to={s.value} suffix={s.suffix} startFrame={start} durationInFrames={45} />
+              </div>
+              <div
+                style={{
+                  fontSize: 24,
+                  opacity: 0.55,
+                  color: colors.white,
+                  marginTop: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  fontWeight: 500,
+                }}
+              >
+                {s.label}
+              </div>
             </div>
           </div>
-        ))}
+        )})}
       </div>
     </AbsoluteFill>
   );

@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { fadeUp } from "../motion";
+import { fadeUp, popIn } from "../motion";
 import { Logo } from "../Logo";
 
 export const Hero: React.FC = () => {
@@ -48,6 +48,7 @@ export const Hero: React.FC = () => {
           textAlign: "center",
           padding: "0 140px",
           ...fadeUp(frame, 14, 22, 36),
+          scale: popIn(frame, 14, 28).scale,
         }}
       >
         <h1

@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { fadeUp } from "../motion";
+import { fadeUp, floatY, popIn } from "../motion";
 
 const items = [
   "3 000 Tunisiens déjà là-bas",
@@ -53,22 +53,32 @@ export const Support: React.FC = () => {
       </div>
 
       <div style={{ display: "flex", gap: 24, marginTop: 56 }}>
-        {items.map((item, i) => (
-          <div
-            key={item}
-            style={{
-              background: colors.black,
-              color: colors.white,
-              borderRadius: 50,
-              padding: "20px 36px",
-              fontSize: 26,
-              fontWeight: 600,
-              ...fadeUp(frame, 20 + i * 10, 18, 28),
-            }}
-          >
-            {item}
-          </div>
-        ))}
+        {items.map((item, i) => {
+          const start = 20 + i * 10;
+          return (
+            <div
+              key={item}
+              style={{
+                ...fadeUp(frame, start, 18, 28),
+                scale: popIn(frame, start, 20).scale,
+              }}
+            >
+              <div
+                style={{
+                  background: colors.black,
+                  color: colors.white,
+                  borderRadius: 50,
+                  padding: "20px 36px",
+                  fontSize: 26,
+                  fontWeight: 600,
+                  translate: `0px ${floatY(frame - start, 4, 22)}px`,
+                }}
+              >
+                {item}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </AbsoluteFill>
   );
