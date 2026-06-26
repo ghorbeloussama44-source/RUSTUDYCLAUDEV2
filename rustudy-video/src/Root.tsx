@@ -2,6 +2,7 @@ import "./index.css";
 import { Composition } from "remotion";
 import { RusStudyVideo, TOTAL_DURATION } from "./RusStudyVideo";
 import { FootballPersona } from "./scenes/FootballPersona";
+import { LogoPersona } from "./scenes/LogoPersona";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -18,6 +19,14 @@ export const RemotionRoot: React.FC = () => {
         id="FootballPersona"
         component={FootballPersona}
         durationInFrames={150}
+        fps={30}
+        width={1080}
+        height={1080}
+      />
+      <Composition
+        id="LogoPersona"
+        component={LogoPersona}
+        durationInFrames={160}
         fps={30}
         width={1080}
         height={1080}

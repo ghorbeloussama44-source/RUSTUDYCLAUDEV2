@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, Easing } from "remotion";
 import { colors, fontFamily } from "../theme";
+import { Limb } from "../rig/Limb";
 
 const LOOP = 150;
 
@@ -57,30 +58,6 @@ const Ball: React.FC<{ x: number; y: number; size: number; rotate: number; opaci
       />
     ))}
   </div>
-);
-
-const Limb: React.FC<{
-  left: number;
-  top: number;
-  width: number;
-  length: number;
-  angle: number;
-  color: string;
-  radius?: number;
-}> = ({ left, top, width, length, angle, color, radius = 18 }) => (
-  <div
-    style={{
-      position: "absolute",
-      left,
-      top,
-      width,
-      height: length,
-      background: color,
-      borderRadius: radius,
-      transformOrigin: "50% 0%",
-      rotate: `${angle}deg`,
-    }}
-  />
 );
 
 export const FootballPersona: React.FC = () => {
