@@ -25,6 +25,12 @@
       "skillPath": ".claude/skills/design-system/SKILL.md",
       "computedHash": "a05715299135276628f53519484e1267ec8ad111e6355a09c2da1cf66aee2cc3"
     },
+    "motion-framer": {
+      "source": "freshtechbro/claudedesignskills",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/motion-framer/SKILL.md",
+      "computedHash": "37b0a6fb2470feca368cf96f8058456b81dd17385a9c35334b794628d7c7981b"
+    },
     "remotion-best-practices": {
       "source": "remotion-dev/skills",
       "sourceType": "github",
