@@ -2,8 +2,11 @@ import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, Easing } from "remotion";
 import { colors, fontFamily } from "../theme";
 import { FoxKarateCharacter } from "../rig/FoxKarateCharacter";
+import { DustPuff, ImpactBurst, SpeedLines, useShake } from "../rig/Effects";
 
 const LOOP = 150;
+const CONTACT_FRAME = 48;
+const LANDING_FRAME = 122;
 
 const ease = Easing.bezier(0.45, 0, 0.55, 1);
 
@@ -87,7 +90,15 @@ export const FootballPersona: React.FC = () => {
     { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
   );
 
-  // kicking leg (right)
+  // tail follows the body with a slight delay for natural follow-through
+  const torsoLeanLag = interpolate(
+    frame - 6,
+    [18, 36, 48, 58, 95],
+    [0, -10, 14, 4, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
+  // kicking leg (right) — hip swing + knee snap for a whip-like kick
   const rightLegAngle = interpolate(
     frame,
     [0, 18, 36, 48, 58, 78, 95, 150],
@@ -95,11 +106,25 @@ export const FootballPersona: React.FC = () => {
     { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
   );
 
-  // planted leg (left)
+  const rightLegBend = interpolate(
+    frame,
+    [0, 18, 30, 42, 48, 58, 78, 95, 150],
+    [0, 0, -58, -18, 8, 18, 6, 0, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
+  // planted leg (left) — small knee bend for grounding + landing absorb
   const leftLegAngle = interpolate(
     frame,
     [0, 18, 36, 48, 95, 108, 122, 150],
     [0, 0, 8, -6, 0, -30, 0, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
+  const leftLegBend = interpolate(
+    frame,
+    [0, 18, 36, 48, 95, 104, 112, 122, 150],
+    [0, 0, 6, -4, 0, -10, -38, -8, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
   );
 
@@ -110,10 +135,38 @@ export const FootballPersona: React.FC = () => {
     { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
   );
 
+  const rightArmBend = interpolate(
+    frame,
+    [0, 36, 48, 95, 108, 122, 150],
+    [0, 15, -15, 0, 35, 30, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
   const leftArmAngle = interpolate(
     frame,
     [0, 36, 48, 95, 108, 122, 150],
     [-10, 30, -25, -10, 170, 150, -10],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
+  const leftArmBend = interpolate(
+    frame,
+    [0, 36, 48, 95, 108, 122, 150],
+    [0, -15, 15, 0, -35, -30, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
+  // squash & stretch: stretch on the jump up, squash on landing
+  const squashY = interpolate(
+    frame,
+    [95, 102, 108, 116, 122, 128],
+    [1, 1.12, 1.12, 0.88, 0.88, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+  const squashX = interpolate(
+    frame,
+    [95, 102, 108, 116, 122, 128],
+    [1, 0.92, 0.92, 1.1, 1.1, 1],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
   );
 
@@ -145,6 +198,11 @@ export const FootballPersona: React.FC = () => {
     extrapolateRight: "clamp",
   });
 
+  const kickShake = useShake(frame, CONTACT_FRAME, 7, 8);
+  const landingShake = useShake(frame, LANDING_FRAME, 8, 6);
+  const shakeX = kickShake.x + landingShake.x;
+  const shakeY = kickShake.y + landingShake.y;
+
   return (
     <AbsoluteFill
       style={{
@@ -154,77 +212,105 @@ export const FootballPersona: React.FC = () => {
         overflow: "hidden",
       }}
     >
-      {/* pitch lines */}
       <div
         style={{
           position: "absolute",
-          left: 0,
-          right: 0,
-          top: 60,
-          height: 4,
-          background: "rgba(255,255,255,0.55)",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: 60,
-          width: 4,
-          height: 960,
-          background: "rgba(255,255,255,0.55)",
-          translate: "-50% 0",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: 480,
-          width: 280,
-          height: 280,
-          border: "4px solid rgba(255,255,255,0.55)",
-          borderRadius: "50%",
-          translate: "-50% -50%",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: 220,
-          background: "rgba(0,0,0,0.12)",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          top: 56,
-          left: "50%",
-          translate: "-50% 0",
-          color: "rgba(255,255,255,0.85)",
-          fontWeight: 700,
-          fontSize: 40,
-          letterSpacing: "-0.03em",
+          inset: 0,
+          translate: `${shakeX}px ${shakeY}px`,
         }}
       >
-        Rus<span style={{ color: colors.yellow }}>Study</span>.
+        {/* pitch lines */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 60,
+            height: 4,
+            background: "rgba(255,255,255,0.55)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: 60,
+            width: 4,
+            height: 960,
+            background: "rgba(255,255,255,0.55)",
+            translate: "-50% 0",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: 480,
+            width: 280,
+            height: 280,
+            border: "4px solid rgba(255,255,255,0.55)",
+            borderRadius: "50%",
+            translate: "-50% -50%",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 220,
+            background: "rgba(0,0,0,0.12)",
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            top: 56,
+            left: "50%",
+            translate: "-50% 0",
+            color: "rgba(255,255,255,0.85)",
+            fontWeight: 700,
+            fontSize: 40,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          Rus<span style={{ color: colors.yellow }}>Study</span>.
+        </div>
+
+        <SpeedLines
+          x={footX + 10}
+          y={footY - 20}
+          angleDeg={-58}
+          frame={frame}
+          startFrame={49}
+          endFrame={78}
+        />
+
+        <Ball x={ballX} y={ballY} size={64} rotate={ballRotate} opacity={ballOpacity} />
+
+        <DustPuff x={footX + 20} y={footY + 10} frame={frame} triggerFrame={CONTACT_FRAME} />
+        <ImpactBurst x={footX + 24} y={footY - 4} frame={frame} triggerFrame={CONTACT_FRAME} />
+        <DustPuff x={hipX - 30} y={hipY + 100} frame={frame} triggerFrame={LANDING_FRAME} duration={12} />
+
+        <FoxKarateCharacter
+          hipX={hipX}
+          bodyY={bodyY}
+          torsoLean={torsoLean}
+          leftArmAngle={leftArmAngle}
+          rightArmAngle={rightArmAngle}
+          leftLegAngle={leftLegAngle}
+          rightLegAngle={rightLegAngle}
+          leftArmBend={leftArmBend}
+          rightArmBend={rightArmBend}
+          leftLegBend={leftLegBend}
+          rightLegBend={rightLegBend}
+          squashX={squashX}
+          squashY={squashY}
+          tailAngle={150 - torsoLeanLag * 1.2}
+        />
       </div>
-
-      <Ball x={ballX} y={ballY} size={64} rotate={ballRotate} opacity={ballOpacity} />
-
-      <FoxKarateCharacter
-        hipX={hipX}
-        bodyY={bodyY}
-        torsoLean={torsoLean}
-        leftArmAngle={leftArmAngle}
-        rightArmAngle={rightArmAngle}
-        leftLegAngle={leftLegAngle}
-        rightLegAngle={rightLegAngle}
-      />
     </AbsoluteFill>
   );
 };

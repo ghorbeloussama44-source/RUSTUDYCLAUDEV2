@@ -10,8 +10,10 @@ import {
 import { colors, fontFamily } from "../theme";
 import { FoxKarateCharacter } from "../rig/FoxKarateCharacter";
 import { Logo } from "../Logo";
+import { GlowPulse, useShake } from "../rig/Effects";
 
 const ease = Easing.bezier(0.45, 0, 0.55, 1);
+const SETTLE_FRAME = 80;
 
 export const LogoPersona: React.FC = () => {
   const frame = useCurrentFrame();
@@ -37,10 +39,25 @@ export const LogoPersona: React.FC = () => {
     easing: ease,
   });
 
+  // tail follows the body with a slight delay for natural follow-through
+  const torsoLeanLag = interpolate(
+    frame - 6,
+    [45, 70, 95, 160],
+    [0, -9, -5, -5],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
   const rightArmAngle = interpolate(
     frame,
     [0, 25, 45, 70, 95, 160],
     [12, 12, 58, -165, -158, -158],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
+  const rightArmBend = interpolate(
+    frame,
+    [0, 25, 45, 70, 95, 160],
+    [0, 0, 22, -12, 0, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
   );
 
@@ -51,7 +68,30 @@ export const LogoPersona: React.FC = () => {
     { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
   );
 
+  const leftArmBend = interpolate(
+    frame,
+    [0, 25, 45, 70, 95, 160],
+    [0, 0, -22, 12, 0, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+
   const legSway = Math.sin((frame / 40) * Math.PI) * 2;
+
+  // squash & stretch: a small bounce on entrance landing, and a second one
+  // when the lift spring overshoots and settles overhead
+  const landSquash = interpolate(frame, [18, 24, 30, 36], [1, 0.88, 1.1, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: ease,
+  });
+  const liftSquash = interpolate(
+    frame,
+    [68, 75, 83, 92],
+    [1, 1.12, 0.9, 1],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: ease },
+  );
+  const squashY = 1 + (landSquash - 1) + (liftSquash - 1);
+  const squashX = 1 - (squashY - 1) * 0.6;
 
   // plaque: the logo sign the persona lifts overhead
   const liftSpring = spring({
@@ -84,6 +124,8 @@ export const LogoPersona: React.FC = () => {
   const groundWobble =
     frame >= 24 && frame < 45 ? Math.sin((frame / 6) * Math.PI) * 3 : 0;
 
+  const settleShake = useShake(frame, SETTLE_FRAME, 6, 5);
+
   return (
     <AbsoluteFill
       style={{
@@ -95,61 +137,75 @@ export const LogoPersona: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          left: "50%",
-          top: 360,
-          width: 760,
-          height: 760,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${colors.purple}22 0%, transparent 70%)`,
-          translate: "-50% -50%",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          left: hipX,
-          top: hipY + 130,
-          width: 260,
-          height: 36,
-          borderRadius: "50%",
-          background: "rgba(10,10,10,0.18)",
-          translate: "-50% -50%",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          left: hipX,
-          top: plaqueY,
-          width: 380,
-          height: 156,
-          translate: "-50% -50%",
-          scale: plaqueScale,
-          rotate: `${plaqueSpin + plaqueIdleWiggle + groundWobble}deg`,
-          opacity: plaqueOpacity,
-          background: colors.white,
-          borderRadius: 28,
-          boxShadow: "0 18px 40px rgba(0,0,0,0.22)",
-          border: `4px solid ${colors.purple}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          inset: 0,
+          translate: `${settleShake.x}px ${settleShake.y}px`,
         }}
       >
-        <Logo size={56} light={false} />
-      </div>
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: 360,
+            width: 760,
+            height: 760,
+            borderRadius: "50%",
+            background: `radial-gradient(circle, ${colors.purple}22 0%, transparent 70%)`,
+            translate: "-50% -50%",
+          }}
+        />
 
-      <FoxKarateCharacter
-        hipX={hipX}
-        bodyY={bodyY}
-        torsoLean={torsoLean}
-        leftArmAngle={leftArmAngle}
-        rightArmAngle={rightArmAngle}
-        leftLegAngle={legSway}
-        rightLegAngle={legSway}
-      />
+        <div
+          style={{
+            position: "absolute",
+            left: hipX,
+            top: hipY + 130,
+            width: 260,
+            height: 36,
+            borderRadius: "50%",
+            background: "rgba(10,10,10,0.18)",
+            translate: "-50% -50%",
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            left: hipX,
+            top: plaqueY,
+            width: 380,
+            height: 156,
+            translate: "-50% -50%",
+            scale: plaqueScale,
+            rotate: `${plaqueSpin + plaqueIdleWiggle + groundWobble}deg`,
+            opacity: plaqueOpacity,
+            background: colors.white,
+            borderRadius: 28,
+            boxShadow: "0 18px 40px rgba(0,0,0,0.22)",
+            border: `4px solid ${colors.purple}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <GlowPulse frame={frame} triggerFrame={SETTLE_FRAME} />
+          <Logo size={56} light={false} />
+        </div>
+
+        <FoxKarateCharacter
+          hipX={hipX}
+          bodyY={bodyY}
+          torsoLean={torsoLean}
+          leftArmAngle={leftArmAngle}
+          rightArmAngle={rightArmAngle}
+          leftLegAngle={legSway}
+          rightLegAngle={legSway}
+          leftArmBend={leftArmBend}
+          rightArmBend={rightArmBend}
+          squashX={squashX}
+          squashY={squashY}
+          tailAngle={150 - torsoLeanLag * 1.2}
+        />
+      </div>
     </AbsoluteFill>
   );
 };

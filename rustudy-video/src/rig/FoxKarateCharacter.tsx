@@ -7,25 +7,32 @@ const TORSO_TOP = -148;
 const TORSO_HEIGHT = 148;
 const HEAD_TOP = TORSO_TOP - HEAD_SIZE + 16;
 
+const gradient = (light: string, base: string, dark: string) =>
+  `linear-gradient(135deg, ${light} 0%, ${base} 55%, ${dark} 100%)`;
+
 const FUR = colors.orange;
-const GI = colors.white;
+const FUR_GRADIENT = gradient("#FFA45C", FUR, "#C2520A");
+const GI_GRADIENT = gradient("#FFFFFF", colors.white, "#D9D4C8");
 const BELT = colors.black;
-const PAW = "#FCE5C8";
+const PAW_GRADIENT = gradient("#FFF1DC", "#FCE5C8", "#E8C49C");
 
 const FoxLimb: React.FC<{
   left: number;
   top: number;
-  width: number;
-  length: number;
+  upperWidth: number;
+  upperLength: number;
+  lowerWidth: number;
+  lowerLength: number;
   angle: number;
-}> = ({ left, top, width, length, angle }) => (
+  bend: number;
+}> = ({ left, top, upperWidth, upperLength, lowerWidth, lowerLength, angle, bend }) => (
   <div
     style={{
       position: "absolute",
       left,
       top,
-      width,
-      height: length,
+      width: upperWidth,
+      height: upperLength,
       transformOrigin: "50% 0%",
       rotate: `${angle}deg`,
     }}
@@ -35,22 +42,57 @@ const FoxLimb: React.FC<{
         position: "absolute",
         left: 0,
         top: 0,
-        width,
-        height: length,
-        background: GI,
-        borderRadius: width / 2,
+        width: upperWidth,
+        height: upperLength,
+        background: GI_GRADIENT,
+        borderRadius: upperWidth / 2,
       }}
     />
     <div
       style={{
         position: "absolute",
-        left: width / 2,
-        top: length - width * 0.55,
-        width: width * 1.1,
-        height: width * 1.1,
-        translate: "-50% 0",
+        left: (upperWidth - lowerWidth) / 2,
+        top: upperLength - lowerWidth * 0.5,
+        width: lowerWidth,
+        height: lowerLength,
+        transformOrigin: "50% 0%",
+        rotate: `${bend}deg`,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: lowerWidth,
+          height: lowerLength,
+          background: GI_GRADIENT,
+          borderRadius: lowerWidth / 2,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: lowerWidth / 2,
+          top: lowerLength - lowerWidth * 0.5,
+          width: lowerWidth * 1.15,
+          height: lowerWidth * 1.15,
+          translate: "-50% 0",
+          borderRadius: "50%",
+          background: PAW_GRADIENT,
+        }}
+      />
+    </div>
+    <div
+      style={{
+        position: "absolute",
+        left: upperWidth / 2,
+        top: upperLength - upperWidth * 0.4,
+        width: upperWidth * 0.82,
+        height: upperWidth * 0.82,
+        translate: "-50% -50%",
         borderRadius: "50%",
-        background: PAW,
+        background: GI_GRADIENT,
       }}
     />
   </div>
@@ -76,7 +118,7 @@ const FoxTail: React.FC<{ angle: number }> = ({ angle }) => (
         top: 0,
         width: 40,
         height: 100,
-        background: FUR,
+        background: FUR_GRADIENT,
         borderRadius: 20,
       }}
     />
@@ -114,7 +156,7 @@ const FoxEar: React.FC<{ side: "left" | "right" }> = ({ side }) => {
         style={{
           position: "absolute",
           inset: 0,
-          background: FUR,
+          background: FUR_GRADIENT,
           clipPath: "polygon(50% 0%, 0% 100%, 100% 100%)",
         }}
       />
@@ -201,7 +243,7 @@ const FoxHead: React.FC<{ tilt: number }> = ({ tilt }) => (
       width: HEAD_SIZE,
       height: HEAD_SIZE,
       borderRadius: "50%",
-      background: FUR,
+      background: FUR_GRADIENT,
       rotate: `${tilt}deg`,
       transformOrigin: "50% 100%",
     }}
@@ -295,6 +337,21 @@ const FoxHead: React.FC<{ tilt: number }> = ({ tilt }) => (
         }}
       />
     </div>
+
+    <div
+      style={{
+        position: "absolute",
+        left: "50%",
+        top: HEAD_SIZE * 0.93,
+        width: HEAD_SIZE * 0.5,
+        height: HEAD_SIZE * 0.12,
+        translate: "-50% 0",
+        background: colors.black,
+        opacity: 0.15,
+        borderRadius: "50%",
+        filter: "blur(6px)",
+      }}
+    />
   </div>
 );
 
@@ -306,7 +363,7 @@ const FoxTorso: React.FC<{ lean: number }> = ({ lean }) => (
       top: TORSO_TOP,
       width: TORSO_WIDTH,
       height: TORSO_HEIGHT,
-      background: GI,
+      background: GI_GRADIENT,
       borderRadius: "70px 70px 90px 90px",
       rotate: `${lean}deg`,
       transformOrigin: "50% 100%",
@@ -362,6 +419,20 @@ const FoxTorso: React.FC<{ lean: number }> = ({ lean }) => (
         borderRadius: 6,
       }}
     />
+    <div
+      style={{
+        position: "absolute",
+        left: "50%",
+        top: TORSO_HEIGHT * 0.96,
+        width: TORSO_WIDTH * 0.7,
+        height: 18,
+        translate: "-50% 0",
+        background: colors.black,
+        opacity: 0.15,
+        borderRadius: "50%",
+        filter: "blur(5px)",
+      }}
+    />
   </div>
 );
 
@@ -373,7 +444,14 @@ export const FoxKarateCharacter: React.FC<{
   rightArmAngle: number;
   leftLegAngle: number;
   rightLegAngle: number;
+  leftArmBend?: number;
+  rightArmBend?: number;
+  leftLegBend?: number;
+  rightLegBend?: number;
   headTilt?: number;
+  squashX?: number;
+  squashY?: number;
+  tailAngle?: number;
 }> = ({
   hipX,
   bodyY,
@@ -382,29 +460,68 @@ export const FoxKarateCharacter: React.FC<{
   rightArmAngle,
   leftLegAngle,
   rightLegAngle,
+  leftArmBend = 0,
+  rightArmBend = 0,
+  leftLegBend = 0,
+  rightLegBend = 0,
   headTilt = 0,
+  squashX = 1,
+  squashY = 1,
+  tailAngle,
 }) => (
-  <div style={{ position: "absolute", left: hipX, top: bodyY }}>
-    <FoxTail angle={150 - torsoLean * 1.2} />
+  <div
+    style={{
+      position: "absolute",
+      left: hipX,
+      top: bodyY,
+      scale: `${squashX} ${squashY}`,
+      transformOrigin: "0px 96px",
+    }}
+  >
+    <FoxTail angle={tailAngle ?? 150 - torsoLean * 1.2} />
 
-    <FoxLimb left={-58} top={0} width={46} length={92} angle={leftLegAngle} />
-    <FoxLimb left={12} top={0} width={46} length={92} angle={rightLegAngle} />
+    <FoxLimb
+      left={-58}
+      top={0}
+      upperWidth={46}
+      upperLength={50}
+      lowerWidth={38}
+      lowerLength={54}
+      angle={leftLegAngle}
+      bend={leftLegBend}
+    />
+    <FoxLimb
+      left={12}
+      top={0}
+      upperWidth={46}
+      upperLength={50}
+      lowerWidth={38}
+      lowerLength={54}
+      angle={rightLegAngle}
+      bend={rightLegBend}
+    />
 
     <FoxTorso lean={torsoLean} />
 
     <FoxLimb
       left={-118}
       top={TORSO_TOP + 8}
-      width={36}
-      length={104}
+      upperWidth={36}
+      upperLength={56}
+      lowerWidth={30}
+      lowerLength={58}
       angle={leftArmAngle}
+      bend={leftArmBend}
     />
     <FoxLimb
       left={82}
       top={TORSO_TOP + 8}
-      width={36}
-      length={104}
+      upperWidth={36}
+      upperLength={56}
+      lowerWidth={30}
+      lowerLength={58}
       angle={rightArmAngle}
+      bend={rightArmBend}
     />
 
     <FoxHead tilt={headTilt + torsoLean * 0.4} />
