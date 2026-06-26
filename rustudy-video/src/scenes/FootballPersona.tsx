@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, Easing } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { CuteCharacter } from "../rig/CuteCharacter";
+import { FoxKarateCharacter } from "../rig/FoxKarateCharacter";
 
 const LOOP = 150;
 
@@ -216,7 +216,7 @@ export const FootballPersona: React.FC = () => {
 
       <Ball x={ballX} y={ballY} size={64} rotate={ballRotate} opacity={ballOpacity} />
 
-      <CuteCharacter
+      <FoxKarateCharacter
         hipX={hipX}
         bodyY={bodyY}
         torsoLean={torsoLean}

@@ -8,7 +8,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { colors, fontFamily } from "../theme";
-import { CuteCharacter } from "../rig/CuteCharacter";
+import { FoxKarateCharacter } from "../rig/FoxKarateCharacter";
 import { Logo } from "../Logo";
 
 const ease = Easing.bezier(0.45, 0, 0.55, 1);
@@ -141,7 +141,7 @@ export const LogoPersona: React.FC = () => {
         <Logo size={56} light={false} />
       </div>
 
-      <CuteCharacter
+      <FoxKarateCharacter
         hipX={hipX}
         bodyY={bodyY}
         torsoLean={torsoLean}
