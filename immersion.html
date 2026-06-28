@@ -49,6 +49,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:cen
 .tour-stage{position:sticky;top:0;height:100svh;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#10122a 0%,var(--space) 70%)}
 #tourBg{position:absolute;inset:0;width:100%;height:100%;display:block}
 #tourFx{position:absolute;inset:0;width:100%;height:100%;display:block;mix-blend-mode:screen;pointer-events:none}
+.tour-glow{position:absolute;inset:-25%;pointer-events:none;background:radial-gradient(circle at 50% 56%,var(--glow-c,#A855F7) 0%,transparent 60%);opacity:.32;filter:blur(60px);transition:background-color .9s ease;mix-blend-mode:screen;will-change:opacity}
 .tour-cam{position:absolute;inset:0;perspective:1400px;perspective-origin:50% 50%}
 .tour-track{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
 .tour-panel{position:absolute;left:50%;top:50%;width:min(380px,78vw);border-radius:26px;padding:26px 24px;will-change:transform,opacity,filter;box-shadow:0 30px 80px rgba(0,0,0,.45)}
@@ -267,6 +268,7 @@ footer>p{font-size:.82rem;opacity:.32;line-height:1.7;max-width:280px;margin-top
   <div class="tour-stage" id="tourStage">
     <canvas id="tourBg"></canvas>
     <canvas id="tourFx"></canvas>
+    <div class="tour-glow" id="tourGlow"></div>
     <div class="tour-cam" id="tourCam">
       <div class="tour-track" id="tourTrack">
         <!-- panels injected as plain DOM, each mimics a real RusStudy page -->
@@ -529,27 +531,38 @@ if(window.matchMedia('(pointer:fine)').matches){
   const N=panels.length;
   const STEP=1300, DEPTH=STEP*(N-1);
   const names=['Accueil','Pourquoi la Russie','Coûts & bourses','Comment ça marche','Programmes','Universités','Mon dossier','Commence maintenant'];
+  const glowColors=['#A855F7','#2460E8','#FBBB21','#A855F7','#F97316','#22C55E','#7C3AED','#A855F7'];
 
-  // place panels along Z + build dots
-  panels.forEach((p,i)=>{ p.style.transform=`translate(-50%,-50%) translateZ(${-i*STEP}px)`; });
   const dotsWrap=document.getElementById('tourDots');
   panels.forEach((_,i)=>{const d=document.createElement('i');if(i===0)d.classList.add('on');dotsWrap.appendChild(d)});
   const dotEls=Array.from(dotsWrap.children);
 
   const hudIdx=document.getElementById('hudIdx'), hudName=document.getElementById('hudName'), hudFill=document.getElementById('hudFill'), scrollPrompt=document.getElementById('scrollPrompt');
+  const glowEl=document.getElementById('tourGlow');
 
   let running=false, lastY=window.scrollY, velocity=0;
+  let progress=0; // eased camera position — lags the raw scroll target for inertia
+  let lastIdx=-1, lastT=performance.now();
 
   function render(){
+    const now=performance.now(); const dt=Math.min(50,now-lastT); lastT=now;
     const rect=tourEl.getBoundingClientRect();
     const total=tourEl.offsetHeight-window.innerHeight;
-    const progress=Math.min(1,Math.max(0,-rect.top/Math.max(1,total)));
+    const target=Math.min(1,Math.max(0,-rect.top/Math.max(1,total)));
+    const k=1-Math.exp(-dt/120); // frame-rate independent easing (~120ms time constant)
+    progress+=(target-progress)*k;
+    if(Math.abs(target-progress)<0.0006)progress=target;
 
     trackEl.style.transform=`translateZ(${progress*DEPTH}px)`;
 
     panels.forEach((p,i)=>{
       const z=progress*DEPTH-i*STEP;
-      const a=Math.max(0,1-Math.abs(z)/(STEP*0.92));
+      const t=z/STEP;
+      const a=Math.max(0,1-Math.abs(t)/0.92);
+      const driftX=Math.sin(t*1.1)*46;
+      const rotY=t*-9;
+      const scl=0.94+a*0.09;
+      p.style.transform=`translate(-50%,-50%) translateZ(${-i*STEP}px) translateX(${driftX}px) rotateY(${rotY}deg) scale(${scl})`;
       p.style.opacity=a;
       p.style.filter=`blur(${(1-a)*6}px)`;
       p.style.pointerEvents=a>0.6?'auto':'none';
@@ -561,6 +574,7 @@ if(window.matchMedia('(pointer:fine)').matches){
     hudFill.style.width=(progress*100)+'%';
     dotEls.forEach((d,i)=>d.classList.toggle('on',i===idx));
     scrollPrompt.style.opacity=progress<0.03?0.55:0;
+    if(idx!==lastIdx){lastIdx=idx;glowEl.style.setProperty('--glow-c',glowColors[idx]);}
   }
 
   function loop(){
@@ -615,7 +629,7 @@ if(window.matchMedia('(pointer:fine)').matches){
       bgx.beginPath(); bgx.arc(s.x*W,yy,s.r*devicePixelRatio,0,Math.PI*2); bgx.fill();
     });
     bgx.globalAlpha=1;
-    requestAnimationFrame(()=>{ if(running) drawBg(); else requestAnimationFrame(drawBg); });
+    requestAnimationFrame(drawBg);
   }
   drawBg();
 
