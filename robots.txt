@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /candidat.html
+
+Sitemap: https://russieeetudes.com/sitemap.xml
