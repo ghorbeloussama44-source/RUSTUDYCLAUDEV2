@@ -96,7 +96,7 @@
           <div class="fn-pdf-icon">PDF<span>📘</span></div>
           <span class="fn-tag" style="display:block;text-align:center;width:fit-content;margin:0 auto 12px">Ton guide est prêt</span>
           <h3 style="text-align:center">Le Guide RusStudy pour étudier en Russie</h3>
-          <p class="fn-desc" style="text-align:center">Programmes, coûts réels, bourses d'État et les 5 étapes du dossier — tout est dedans.</p>
+          <p class="fn-desc" style="text-align:center">Programmes, coûts réels, bourses d'État et les 5 étapes du dossier — tout est dedans. Avec en bonus un code de <strong>-25% sur nos frais de service</strong> à l'intérieur.</p>
           <a class="fn-btn purple" id="fnDownload" href="${PDF_PATH}" download style="display:block;text-align:center;text-decoration:none;box-sizing:border-box">Télécharger le PDF gratuit ⬇</a>
           <button class="fn-btn-secondary" id="fnSkipPdf">Continuer sans télécharger</button>
         </div>
@@ -116,6 +116,12 @@
             <button class="fn-svc" data-v="Ingénierie">⚙️ Ingénierie</button>
             <button class="fn-svc" data-v="Économie / Management">💼 Économie</button>
             <button class="fn-svc" data-v="Je ne sais pas encore">🤔 Pas encore décidé</button>
+          </div>
+
+          <span class="fn-label">Format du rendez-vous</span>
+          <div class="fn-services" id="fnModes">
+            <button class="fn-svc sel" data-v="whatsapp">💬 Appel WhatsApp</button>
+            <button class="fn-svc" data-v="zoom">🎥 Visio Zoom</button>
           </div>
 
           <span class="fn-label">Choisis un jour</span>
@@ -143,7 +149,7 @@
         <div class="fn-body fn-success" style="padding-top:46px">
           <div class="ico">🎉</div>
           <h3>Rendez-vous confirmé !</h3>
-          <p class="fn-desc">Un conseiller RusStudy te contacte sur WhatsApp pour confirmer le créneau.</p>
+          <p class="fn-desc" id="fnSuccessDesc">Un conseiller RusStudy te contacte sur WhatsApp pour confirmer le créneau.</p>
           <div class="fn-recap" id="fnRecap"></div>
           <a class="fn-btn" id="fnWaBtn" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;background:#25D366">💬 Confirmer sur WhatsApp</a>
         </div>
@@ -163,6 +169,7 @@
   let selectedDay = null;
   let selectedSlot = null;
   let selectedService = '';
+  let selectedMode = 'whatsapp';
 
   /* ─── Vraie vidéo absente/indisponible → animation de remplacement (canvas) ───
      Dès qu'un vrai fichier vidéo sera déposé à VIDEO_PATH, il se chargera normalement
@@ -339,11 +346,18 @@
   document.getElementById('fnSkipPdf').onclick = () => showStep(3);
 
   /* ─── STEP 3 : calendar ─── */
-  document.querySelectorAll('.fn-svc').forEach((btn) => {
+  document.querySelectorAll('#fnServices .fn-svc').forEach((btn) => {
     btn.onclick = () => {
-      document.querySelectorAll('.fn-svc').forEach((b) => b.classList.remove('sel'));
+      document.querySelectorAll('#fnServices .fn-svc').forEach((b) => b.classList.remove('sel'));
       btn.classList.add('sel');
       selectedService = btn.dataset.v;
+    };
+  });
+  document.querySelectorAll('#fnModes .fn-svc').forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll('#fnModes .fn-svc').forEach((b) => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      selectedMode = btn.dataset.v;
     };
   });
   document.querySelectorAll('.fn-slot').forEach((btn) => {
@@ -391,18 +405,30 @@
       filiere: selectedService || 'À définir',
       date: selectedDay,
       heure: selectedSlot,
+      mode: selectedMode,
       source: 'Funnel guide gratuit',
     };
     const res = await postJSON('/api/rendezvous', data, 'RDV');
     btn.disabled = false;
     btn.textContent = 'Confirmer le rendez-vous →';
 
+    const modeLabel = selectedMode === 'zoom' ? 'Visio Zoom (lien envoyé sur WhatsApp)' : 'Appel WhatsApp';
     document.getElementById('fnRecap').innerHTML =
-      `<strong>${name}</strong><br>${selectedDay} à ${selectedSlot}<br>${selectedService || 'Filière à définir'}<br><span style="opacity:.5">Réf. ${res.id}</span>`;
+      `<strong>${name}</strong><br>${selectedDay} à ${selectedSlot}<br>${selectedService || 'Filière à définir'}<br>${modeLabel}<br><span style="opacity:.5">Réf. ${res.id}</span>`;
+
+    document.getElementById('fnSuccessDesc').textContent =
+      selectedMode === 'zoom'
+        ? 'Un conseiller RusStudy t\'envoie le lien de connexion Zoom sur WhatsApp avant le rendez-vous.'
+        : 'Un conseiller RusStudy te contacte sur WhatsApp pour confirmer le créneau.';
+
     const waMsg = encodeURIComponent(
-      `Bonjour RusStudy, je viens de réserver un appel le ${selectedDay} à ${selectedSlot} (réf. ${res.id}) concernant : ${selectedService || 'à définir'}.`
+      selectedMode === 'zoom'
+        ? `Bonjour RusStudy, je viens de réserver un appel en visio Zoom le ${selectedDay} à ${selectedSlot} (réf. ${res.id}) concernant : ${selectedService || 'à définir'}. Merci de m'envoyer le lien de connexion.`
+        : `Bonjour RusStudy, je viens de réserver un appel le ${selectedDay} à ${selectedSlot} (réf. ${res.id}) concernant : ${selectedService || 'à définir'}.`
     );
-    document.getElementById('fnWaBtn').href = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}`;
+    const waBtn = document.getElementById('fnWaBtn');
+    waBtn.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${waMsg}`;
+    waBtn.textContent = selectedMode === 'zoom' ? '💬 Recevoir mon lien Zoom sur WhatsApp' : '💬 Confirmer sur WhatsApp';
     showStep(4);
   };
 })();
