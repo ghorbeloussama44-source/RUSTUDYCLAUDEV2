@@ -191,53 +191,139 @@
     resize();
     window.addEventListener('resize', resize);
 
-    const snow = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), r: Math.random() * 1.8 + .6, s: Math.random() * .3 + .15 }));
-    const buildings = Array.from({ length: 9 }, (_, i) => ({ x: i / 9, w: (1 / 9) * (0.7 + Math.random() * 0.5), h: 0.22 + Math.random() * 0.4 }));
-    const windows = buildings.map(() => Array.from({ length: 6 }, () => ({ x: Math.random(), y: Math.random(), on: Math.random() > .4, ph: Math.random() * 6 })));
+    const stars = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random() * .5, r: Math.random() * 1.1 + .4, ph: Math.random() * 6 }));
+    const backline = Array.from({ length: 14 }, (_, i) => ({ x: i / 14, w: (1 / 14) * (0.8 + Math.random() * 0.4), h: 0.13 + Math.random() * 0.16 }));
+    const frontline = Array.from({ length: 8 }, (_, i) => ({ x: i / 8, w: (1 / 8) * (0.7 + Math.random() * 0.5), h: 0.2 + Math.random() * 0.3, spire: Math.random() > .6 }));
+    const windows = frontline.map(() => Array.from({ length: 10 }, () => ({ x: Math.random(), y: Math.random(), on: Math.random() > .3, ph: Math.random() * 6 })));
+    const snow = Array.from({ length: 110 }, () => {
+      const depth = Math.ceil(Math.random() * 3);
+      return { x: Math.random(), y: Math.random(), d: depth, ph: Math.random() * 6 };
+    });
+
+    // Légendes issues des faits déjà présents sur le site (aucun chiffre inventé)
+    const CAPTIONS = [
+      ['Étudie en Russie.', 'Ton avenir commence ici'],
+      ['40+ universités partenaires', 'De Moscou à Saint-Pétersbourg'],
+      ['1 200+ étudiants accompagnés', "Plus de 10 ans d'expérience"],
+      ['Des diplômes reconnus', 'En Europe, au Moyen-Orient et en Afrique'],
+    ];
+    const CAP_DUR = 3.8;
 
     const start = performance.now();
     let prev = start;
     function frame(t) {
       fnAnimId = requestAnimationFrame(frame);
       const elapsed = (t - start) / 1000;
-      const delta = (t - prev) / 1000;
+      const delta = Math.min((t - prev) / 1000, .05);
       prev = t;
       const w = fnAnim.width, h = fnAnim.height;
 
+      // ciel nocturne
       const sky = ctx.createLinearGradient(0, 0, 0, h);
-      sky.addColorStop(0, '#1a0b2e');
-      sky.addColorStop(.55, '#2460E8');
+      sky.addColorStop(0, '#12081f');
+      sky.addColorStop(.45, '#1b2a6b');
+      sky.addColorStop(.8, '#2460E8');
       sky.addColorStop(1, '#0A0A0A');
       ctx.fillStyle = sky;
       ctx.fillRect(0, 0, w, h);
 
-      ctx.globalAlpha = .25 + Math.sin(elapsed * .6) * .08;
-      const aurora = ctx.createRadialGradient(w * .5, h * .12, 0, w * .5, h * .12, w * .6);
-      aurora.addColorStop(0, '#A855F7');
-      aurora.addColorStop(1, 'rgba(168,85,247,0)');
-      ctx.fillStyle = aurora;
-      ctx.fillRect(0, 0, w, h);
+      // étoiles scintillantes
+      stars.forEach((s) => {
+        ctx.globalAlpha = .35 + Math.sin(elapsed * 1.8 + s.ph) * .3;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(s.x * w, s.y * h, s.r * dpr * .7, 0, Math.PI * 2);
+        ctx.fill();
+      });
       ctx.globalAlpha = 1;
 
-      buildings.forEach((b, i) => {
+      // lune + halo
+      const mx = w * .82, my = h * .2, mr = h * .07;
+      const halo = ctx.createRadialGradient(mx, my, 0, mx, my, mr * 4);
+      halo.addColorStop(0, 'rgba(240,235,227,.35)');
+      halo.addColorStop(1, 'rgba(240,235,227,0)');
+      ctx.fillStyle = halo;
+      ctx.fillRect(mx - mr * 4, my - mr * 4, mr * 8, mr * 8);
+      ctx.fillStyle = '#F0EBE3';
+      ctx.beginPath();
+      ctx.arc(mx, my, mr, 0, Math.PI * 2);
+      ctx.fill();
+
+      // aurores boréales (rubans ondulants)
+      [['168,85,247', .16, .05], ['34,197,94', .24, .04], ['36,96,232', .32, .045]].forEach(([rgb, base, amp], k) => {
+        ctx.beginPath();
+        ctx.moveTo(0, h);
+        for (let x = 0; x <= w; x += w / 40) {
+          const y = h * base + Math.sin(x / w * 4 + elapsed * (.5 + k * .2) + k * 2) * h * amp;
+          ctx.lineTo(x, y);
+        }
+        ctx.lineTo(w, 0);
+        ctx.lineTo(0, 0);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, 0, 0, h * .5);
+        grad.addColorStop(0, `rgba(${rgb},0)`);
+        grad.addColorStop(1, `rgba(${rgb},.14)`);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      });
+
+      // skyline arrière (plan de profondeur)
+      backline.forEach((b) => {
+        ctx.fillStyle = 'rgba(20,25,55,.9)';
+        ctx.fillRect(b.x * w, h - b.h * h - h * .12, b.w * w, b.h * h + h * .12);
+      });
+
+      // skyline avant + fenêtres + flèches
+      frontline.forEach((b, i) => {
         const bw = b.w * w, bh = b.h * h, bx = b.x * w, by = h - bh;
-        ctx.fillStyle = '#05050a';
+        ctx.fillStyle = '#04040a';
         ctx.fillRect(bx, by, bw, bh);
+        if (b.spire) {
+          ctx.beginPath();
+          ctx.moveTo(bx + bw * .5 - w * .004, by);
+          ctx.lineTo(bx + bw * .5, by - h * .07);
+          ctx.lineTo(bx + bw * .5 + w * .004, by);
+          ctx.closePath();
+          ctx.fill();
+        }
         windows[i].forEach((win) => {
-          const on = win.on && Math.sin(elapsed * 1.4 + win.ph) > -.3;
-          ctx.fillStyle = on ? 'rgba(251,187,33,.85)' : 'rgba(255,255,255,.06)';
-          ctx.fillRect(bx + win.x * bw * .8 + bw * .1, by + win.y * bh * .7 + bh * .15, w * .006, h * .012);
+          const on = win.on && Math.sin(elapsed * 1.2 + win.ph) > -.4;
+          ctx.fillStyle = on ? 'rgba(251,187,33,.9)' : 'rgba(255,255,255,.05)';
+          ctx.fillRect(bx + win.x * bw * .8 + bw * .1, by + win.y * bh * .7 + bh * .18, w * .005, h * .011);
         });
       });
 
-      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      // neige en 3 couches de profondeur
       snow.forEach((p) => {
-        p.y += p.s * delta * .4;
-        if (p.y > 1) p.y = 0;
+        p.y += (p.d * .1 + .06) * delta;
+        if (p.y > 1) { p.y = -.02; p.x = Math.random(); }
+        const drift = Math.sin(elapsed * .8 + p.ph) * .008 * p.d;
+        ctx.globalAlpha = .25 + p.d * .22;
+        ctx.fillStyle = '#fff';
         ctx.beginPath();
-        ctx.arc(p.x * w, p.y * h, p.r * dpr, 0, Math.PI * 2);
+        ctx.arc((p.x + drift) * w, p.y * h, (p.d * .55 + .3) * dpr, 0, Math.PI * 2);
         ctx.fill();
       });
+      ctx.globalAlpha = 1;
+
+      // légendes marketing en fondu enchaîné
+      const cyc = elapsed % (CAPTIONS.length * CAP_DUR);
+      const idx = Math.floor(cyc / CAP_DUR);
+      const local = (cyc % CAP_DUR) / CAP_DUR;
+      const fade = Math.min(local / .18, 1, (1 - local) / .18);
+      const [line1, line2] = CAPTIONS[idx];
+      ctx.globalAlpha = Math.max(fade, 0);
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,.6)';
+      ctx.shadowBlur = 12 * dpr;
+      ctx.fillStyle = '#fff';
+      ctx.font = `700 ${Math.round(w * .052)}px 'Space Grotesk',sans-serif`;
+      ctx.fillText(line1, w * .5, h * .52);
+      ctx.fillStyle = '#FBBB21';
+      ctx.font = `600 ${Math.round(w * .03)}px 'Space Grotesk',sans-serif`;
+      ctx.fillText(line2, w * .5, h * .52 + w * .05);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
     }
     fnAnimId = requestAnimationFrame(frame);
     fnAnim._fnCleanup = () => window.removeEventListener('resize', resize);
